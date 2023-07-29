@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteInEditMode]
 public class PlaneShadow : MonoBehaviour
 {
     [Header("光的方向")]
@@ -12,8 +13,8 @@ public class PlaneShadow : MonoBehaviour
     public float mDistance;
     [Header("光的颜色")]
     public Color mColor;
-
-    float mDistanceChange;
+    [Header("实时更新")]
+    public bool mEnableUpdate;
 
     Renderer[] renderers;
     MaterialPropertyBlock materialPropertyBlock;
@@ -28,6 +29,13 @@ public class PlaneShadow : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Debug.Log("Start");
+
+    }
+
+    private void OnEnable()
+    {
+        Debug.Log("OnEnable");
         renderers = GetComponentsInChildren<Renderer>();
         materialPropertyBlock = new MaterialPropertyBlock();
         Material shadowMat = new Material(Shader.Find(shaderName));
@@ -37,28 +45,31 @@ public class PlaneShadow : MonoBehaviour
         }
         foreach (var render in renderers)
         {
-            int length = render.materials.Length;
+            int length = render.sharedMaterials.Length;
             Material[] materials = new Material[length + 1];
+            bool hasShadow = false;
             for (int i = 0; i < length; i++)
             {
-                materials[i] = render.materials[i];
+                if (render.sharedMaterials[i].shader.name == shaderName)
+                {
+                    hasShadow = true;
+                    break;
+                }
+                materials[i] = render.sharedMaterials[i];
+            }
+            if (hasShadow)
+            {
+                continue;
             }
             materials[length] = shadowMat;
-            render.materials = materials;
+            render.sharedMaterials = materials;
         }
-
-        mDistanceChange = mDistance;
         calculate();
-    }
-
-    private void OnEnable()
-    {
-        
     }
 
     private void OnDisable()
     {
-        
+        Debug.Log("OnDisable");
     }
 
     void calculate()
@@ -85,6 +96,9 @@ public class PlaneShadow : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        calculate();
+        if (mEnableUpdate)
+        {
+            calculate();
+        }
     }
 }

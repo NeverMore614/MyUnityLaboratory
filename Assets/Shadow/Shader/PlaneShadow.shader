@@ -48,9 +48,14 @@ Shader "Study/PlaneShadow"
             v2f vert (appdata v)
             {
                 v2f o;
+                _PlaneDirNormal = TransformWorldToObjectDir(_PlaneDirNormal);
+                _LightDirNormal = TransformWorldToObjectDir(_LightDirNormal);
+                //_CosLP = dot(_LightDirNormal, _PlaneDirNormal);
+                float3 postionWS = v.positionOS.xyz;
+                //float3 postionZero = TransformObjectToWorld(float3(0,0,0));
                 //计算到平面的距离
-                float3 dirOS = normalize(v.positionOS.xyz);
-                float disOS = length(v.positionOS.xyz);
+                float3 dirOS = normalize(postionWS.xyz);
+                float disOS = length(postionWS.xyz);
 
                 float cosPO = dot(dirOS, _PlaneDirNormal);
                 float length = _PlaneDistance / cosPO;
@@ -59,12 +64,13 @@ Shader "Study/PlaneShadow"
 
                 float disLight = disOP / _CosLP;
 
-                float3 postionWS = TransformObjectToWorld(v.positionOS);
+                
 
                 //v.positionOS.xyz += _LightDirNormal * disLight;
                 postionWS += _LightDirNormal * disLight;
 
-                o.positionHCS = TransformWorldToHClip(postionWS);
+                //o.positionHCS = TransformObjectToHClip(v.positionOS);
+                o.positionHCS = TransformObjectToHClip(postionWS);
                 return o;
             }
 
